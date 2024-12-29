@@ -1,0 +1,20 @@
+FROM ubuntu:22.04
+
+RUN echo "Starting the base docker image build process..."
+
+ENV DEBIAN_FRONTEND noninteractive
+
+RUN apt-get update && apt-get install -y \
+    apt-utils \
+    build-essential \
+    cmake \
+    ninja-build \
+    libgtest-dev \
+    gdb \
+    git \
+    clangd \
+    clang-format \
+    libspdlog-dev
+
+RUN echo "Finished the base docker image build process!"
+

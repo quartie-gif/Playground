@@ -1,0 +1,71 @@
+{
+    "version": 3,
+    "cmakeMinimumRequired": {
+        "major": 3,
+        "minor": 21,
+        "patch": 0
+    },
+    "configurePresets": [
+        {
+            "name": "cxx-std",
+            "description": "This preset makes sure the project actually builds with at least the specified standard",
+            "hidden": true,
+            "cacheVariables": {
+                "CMAKE_CXX_EXTENSIONS": "OFF",
+                "CMAKE_CXX_STANDARD": "20",
+                "CMAKE_CXX_STANDARD_REQUIRED": "ON",
+                "CMAKE_EXPORT_COMPILE_COMMANDS": "ON"
+            }
+        },
+        {
+            "name": "tests",
+            "displayName": "Tests",
+            "description": "Build configuration for running tests",
+            "cacheVariables": {
+                "ENABLE_TESTS": "ON"
+            }
+        },
+        {
+            "name": "release",
+            "displayName": "Release",
+            "description": "Release build configuration",
+            "generator": "Ninja",
+            "binaryDir": "${sourceDir}/build/release",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Release"
+            },
+            "inherits": [
+                "cxx-std"
+            ]
+        },
+        {
+            "name": "debug",
+            "displayName": "Debug",
+            "description": "Debug build configuration",
+            "generator": "Ninja",
+            "binaryDir": "${sourceDir}/build/debug",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Debug",
+                "CMAKE_CXX_FLAGS": "-g -Wall -Wextra -Wpedantic"
+            },
+            "inherits": [
+                "cxx-std",
+                "tests"
+            ]
+        },
+        {
+            "name": "benchmarking",
+            "displayName": "Benchmarking",
+            "description": "Benchmarking build configuration",
+            "generator": "Ninja",
+            "binaryDir": "${sourceDir}/build/benchmarking",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Release",
+                "ENABLE_BENCHMARKING": "ON"
+            },
+            "inherits": [
+                "cxx-std"
+            ]
+        }
+    ]
+}
