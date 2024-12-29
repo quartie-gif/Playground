@@ -1,16 +1,31 @@
 #include "HttpServer.hpp"
+#include "IRequestHandler.hpp"
+#include "RequestHandler.hpp"
+
 #include <arpa/inet.h>
 #include <sys/socket.h>
 #include <unistd.h>
 #include <cstring>
-#include "Logger/Logger.hpp"
+#include <functional>
+#include <unordered_map>
 
-HttpServer::HttpServer(int port, const std::shared_ptr<Logger>& logger)
-    : m_logger(logger), m_port(port), m_running(false), m_server_fd(-1) {
+HttpServer::HttpServer(int port, std::shared_ptr<Logger> logger,
+                       const IHttpRequestParser& requestParser)
+    : m_logger(logger),
+      m_requestParser(requestParser),
+      m_port(port),
+      m_running(false),
+      m_server_fd(-1) {
 
     m_address.sin_family = AF_INET;
     m_address.sin_addr.s_addr = INADDR_ANY;
     m_address.sin_port = htons(port);
+
+    addHandler(HttpMethod::GET, std::make_shared<GetRequestHandler>(m_logger));
+    addHandler(HttpMethod::POST,
+               std::make_shared<PostRequestHandler>(m_logger));
+    addHandler(HttpMethod::DELETE,
+               std::make_shared<DeleteRequestHandler>(m_logger));
 }
 
 HttpServer::~HttpServer() {
@@ -19,7 +34,7 @@ HttpServer::~HttpServer() {
 
 void HttpServer::start() {
     if (m_running) {
-        LOG_ERROR(m_logger, "Server is already runnning!");
+        LOG_ERROR(m_logger, "Server is already running!");
         return;
     }
 
@@ -35,7 +50,7 @@ void HttpServer::start() {
         return;
     }
 
-    if (listen(m_server_fd, 3) < 0) {
+    if (listen(m_server_fd, HttpServer::LISTEN_BACKLOG) < 0) {
         LOG_ERROR(m_logger, "Listen failed");
         return;
     }
@@ -70,9 +85,10 @@ void HttpServer::handleRequest(int client_socket) {
     read(client_socket, buffer, sizeof(buffer));
 
     std::string request(buffer);
-    LOG_INFO(m_logger, "Request received: {}", request);
+    HttpRequest http_request = m_requestParser.parseRequest(request);
+    std::string response_body = handleHttpRequest(
+        http_request);  // TODO: Try to implement WebSocket connection :)  What about the arch? WS is HTTP connection!
 
-    std::string response_body = parseRequest(request);
     sendResponse(client_socket, response_body);
 }
 
@@ -87,9 +103,16 @@ void HttpServer::sendResponse(int client_socket, const std::string& body) {
     send(client_socket, response.c_str(), response.size(), 0);
 }
 
-std::string HttpServer::parseRequest(const std::string& request) {
-    if (request.find("GET / HTTP/1.1") != std::string::npos) {
-        return "<html><body><h1>Hello, World!</h1></body></html>";
+std::string HttpServer::handleHttpRequest(const HttpRequest& request) {
+    auto it = m_handlers.find(request.method);
+    if (it != m_handlers.end()) {
+        return it->second->handleRequest(request);
     }
-    return "<html><body><h1>404 Not Found</h1></body></html>";
+
+    return "<html><body><h1>405 Method Not Allowed</h1></body></html>";
+}
+
+void HttpServer::addHandler(HttpMethod method,
+                            std::shared_ptr<IRequestHandler> handler) {
+    m_handlers[method] = handler;
 }

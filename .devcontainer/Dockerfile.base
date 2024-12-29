@@ -14,7 +14,8 @@ RUN apt-get update && apt-get install -y \
     git \
     clangd \
     clang-format \
-    libspdlog-dev
+    libspdlog-dev \
+    curl
 
 RUN echo "Finished the base docker image build process!"
 

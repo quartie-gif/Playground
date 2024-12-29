@@ -2,6 +2,11 @@ set(SOURCES
     main.cpp
     HttpServer.cpp
     HttpServer.hpp
+    IHttpRequestParser.hpp
+    HttpRequestParser.hpp
+    RequestHandler.hpp
+    IRequestHandler.hpp
+    HttpRequest.hpp
 )
 
 add_executable(HttpServer ${SOURCES})

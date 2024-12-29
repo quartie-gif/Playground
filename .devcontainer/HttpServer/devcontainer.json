@@ -1,10 +1,7 @@
 {
     "name": "HttpServer Dev Container",
     "build": {
-        "dockerfile": "../base.Dockerfile",
-        "args": {
-            // "BASE_DOCKERFILE": "../base.Dockerfile" TODO: FIXME
-        }
+        "dockerfile": "./Dockerfile"
     },
     "mounts": [
         "source=/Users/maciejpiwek/Programming/Playground,target=/workspace,type=bind,consistency=cached"
